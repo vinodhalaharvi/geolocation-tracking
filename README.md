@@ -1,5 +1,5 @@
 # Location Tracking Application
-
+![location-tracking.png](location-tracking.png)
 This application allows users to track locations with support for login via username/password or Google OAuth.
 ## Getting Started
 
