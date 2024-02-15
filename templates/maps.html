@@ -1,59 +1,18 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>Live Car Tracking</title>
-    <style>
-        /* Make the map fill the entire screen */
-        html, body {
-            height: 100%;
-            margin: 0;
-            padding: 0;
-        }
-        #map {
-            height: 100%;
-        }
-    </style>
-    <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyBfvDXHQ2WBuoNdV1fBPVNNAoQGuz8XMME&callback=initMap" async defer></script>
-    <script type="text/javascript">
-        var map;
-        var marker;
-        function initMap() {
-            var mapOptions = {
-                zoom: 14,
-                center: {lat: 38.9072, lng: -77.0369} // Washington DC coordinates
-            };
-            map = new google.maps.Map(document.getElementById('map'), mapOptions);
-
-            var icon = {
-                url: "http://maps.google.com/mapfiles/kml/shapes/cabs.png", // URL
-                scaledSize: new google.maps.Size(20, 20), // Adjust size
-            };
-
-            marker = new google.maps.Marker({
-                position: mapOptions.center,
-                map: map,
-                icon: icon
-            });
-        }
-
-        function updateMarkerPosition(lat, lng) {
-            var newPos = new google.maps.LatLng(lat, lng);
-            marker.setPosition(newPos);
-            map.setCenter(newPos);
-        }
-
-        if (!!window.EventSource) {
-            var conn = new WebSocket('ws://' + window.location.host + '/ws');
-            conn.onmessage = function(e) {
-                var data = JSON.parse(e.data);
-                updateMarkerPosition(data.latitude, data.longitude);
-            };
-        } else {
-            console.log("Your browser does not support WebSockets.");
-        }
-    </script>
+    <title>Geo-Fencing Application</title>
+    <link rel="stylesheet" href="/static/styles/map.css"> <!-- Reference to the external CSS file -->
 </head>
 <body>
 <div id="map"></div>
+<script src="/static/js/maps.js"></script>
+<script
+        src="https://maps.googleapis.com/maps/api/js?key=YOUR_API_KEY&libraries=drawing,geometry&callback=initMap"
+        async defer></script>
+<!-- Add this inside the <body> tag, after <div id="map"></div> -->
+<button id="simulateBtn" style="position: fixed; bottom: 20px; right: 20px; z-index: 999; cursor: pointer;">Simulate
+</button>
+
 </body>
 </html>

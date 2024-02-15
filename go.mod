@@ -5,6 +5,8 @@ go 1.21.1
 require (
 	github.com/gin-contrib/sessions v0.0.5
 	github.com/gin-gonic/gin v1.9.1
+	github.com/golang/geo v0.0.0-20230421003525-6adc56603217
+	github.com/google/uuid v1.6.0
 	github.com/gorilla/websocket v1.5.1
 	golang.org/x/oauth2 v0.17.0
 	google.golang.org/protobuf v1.32.0

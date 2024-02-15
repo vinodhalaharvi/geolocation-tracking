@@ -1,25 +1,14 @@
-package auth
+package controller
 
 import (
 	"encoding/json"
 	"github.com/gin-contrib/sessions"
 	"github.com/gin-gonic/gin"
 	"golang.org/x/oauth2"
-	"html/template"
 	"io"
+	"log"
 	"net/http"
 )
-
-func homeHandler(c *gin.Context) {
-	session := sessions.Default(c)
-	userEmail := session.Get("user-email")
-
-	if userEmail != nil {
-		c.HTML(http.StatusOK, "index.tmpl", gin.H{"email": userEmail})
-	} else {
-		c.HTML(http.StatusOK, "login.html", gin.H{})
-	}
-}
 
 func LoginHandler(c *gin.Context) {
 	c.HTML(http.StatusOK, "login.html", gin.H{})
@@ -45,7 +34,12 @@ func GoogleAuthCallback(c *gin.Context) {
 		_ = c.AbortWithError(http.StatusBadRequest, err)
 		return
 	}
-	defer response.Body.Close()
+	defer func(Body io.ReadCloser) {
+		err := Body.Close()
+		if err != nil {
+			log.Printf("Failed to close response body: %v", err)
+		}
+	}(response.Body)
 
 	contents, err := io.ReadAll(response.Body)
 	if err != nil {
@@ -63,43 +57,50 @@ func GoogleAuthCallback(c *gin.Context) {
 
 	// Store the user's email in session
 	session.Set("user-email", userInfo.Email)
-	session.Save()
+	err = session.Save()
+	if err != nil {
+		log.Printf("Failed to save session: %v", err)
+	}
 
 	c.Redirect(http.StatusTemporaryRedirect, "/")
 }
 
-func HtmlTemplate() *template.Template {
-	t, err := template.ParseGlob("templates/*.html")
-	if err != nil {
-		panic(err)
+func SimpleLoginHandler(c *gin.Context) {
+	session := sessions.Default(c)
+
+	// Normally, you'd get these from the request, e.g., c.PostForm("username")
+	// Here, we're hardcoding them for demonstration purposes
+	username := c.PostForm("username")
+	password := c.PostForm("password")
+
+	// Placeholder for proper credential validation
+	// In a real app, replace this with database lookup and secure password comparison
+	const expectedUsername = "admin"
+	const expectedPassword = "adminPass"
+
+	// Validate credentials
+	if username == expectedUsername && password == expectedPassword {
+		// Authentication successful
+		session.Set("isAuthenticated", true)
+		if err := session.Save(); err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to save session"})
+			return
+		}
+		c.Redirect(http.StatusFound, "/")
+	} else {
+		// Authentication failed
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "Incorrect username or password"})
 	}
-	return t
 }
 
 func GoogleOAuthMiddleware() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		session := sessions.Default(c)
 		user := session.Get("user-email")
+		isAuthenticated := session.Get("isAuthenticated") // This could be set by your SimpleLoginHandler
 
-		// If the user is not logged in, redirect to login
-		if user == nil {
-			c.Redirect(http.StatusTemporaryRedirect, "/login")
-			c.Abort()
-			return
-		}
-
-		// Otherwise, proceed to the next middleware
-		c.Next()
-	}
-}
-
-func AuthMiddleware() gin.HandlerFunc {
-	return func(c *gin.Context) {
-		session := sessions.Default(c)
-		user := session.Get("user-email")
-
-		// If the user is not logged in, redirect to login
-		if user == nil {
+		// Check if the user is logged in through any method
+		if user == nil && isAuthenticated != true {
 			c.Redirect(http.StatusTemporaryRedirect, "/login")
 			c.Abort()
 			return
