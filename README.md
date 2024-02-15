@@ -1,7 +1,6 @@
 # Location Tracking Application
 
 This application allows users to track locations with support for login via username/password or Google OAuth.
-
 ## Getting Started
 
 These instructions will get you a copy of the project up and running on your local machine for development and testing
